@@ -5,4 +5,14 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+    <string name="amazon">Amazon</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="myntra">Myntra</string>
+    <string name="flipkart">Flipkart</string>
+    <string name="snapDeal">SnapDeal</string>
+    <string name="ebay">ebay</string>
+    <string name="Jabong">Jabong</string>
+    <string name="click_amazon_or_myntra">Click Amazon or Myntra</string>
 </resources>

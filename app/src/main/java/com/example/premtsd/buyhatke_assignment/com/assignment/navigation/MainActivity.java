@@ -1,7 +1,10 @@
 package com.example.premtsd.buyhatke_assignment.com.assignment.navigation;
 
+import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.design.widget.NavigationView;
@@ -12,17 +15,31 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import com.example.premtsd.buyhatke_assignment.R;
-import com.example.premtsd.buyhatke_assignment.com.assignment.home.PlusOneFragment;
+import com.example.premtsd.buyhatke_assignment.com.assignment.coupen.CouponFragment;
+import com.example.premtsd.buyhatke_assignment.com.assignment.home.HomeFragment;
+
+import pub.devrel.easypermissions.EasyPermissions;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener ,PlusOneFragment.OnFragmentInteractionListener{
+        implements NavigationView.OnNavigationItemSelectedListener, HomeFragment.OnClickInteractionListener {
+
+    private static final int CODE_DRAW_OVER_OTHER_APP_PERMISSION = 2084;
+    private Fragment fragment;
+    private boolean permissionCheck = false;
+    public static FrameLayout frameWebView;
+    public static FrameLayout frameLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        frameWebView = (FrameLayout) findViewById(R.id.content_frame_webView);
+        frameLayout = (FrameLayout) findViewById(R.id.content_frame);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -35,19 +52,56 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
         displaySelectedScreen(R.id.nav_home);
 
+        permissionCheck();
+    }
+
+    private void permissionCheck() {
+        //Check if the application has draw over other apps permission or not?
+        //This permission is by default available for API<23. But for API > 23
+        //you have to ask for the permission in runtime.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+            //If the draw over permission is not available open the settings screen
+            //to grant the permission.
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + getPackageName()));
+            startActivityForResult(intent, CODE_DRAW_OVER_OTHER_APP_PERMISSION);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        // Forward results to EasyPermissions
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == CODE_DRAW_OVER_OTHER_APP_PERMISSION) {
+            //Check if the permission is granted or not.
+            if (requestCode == requestCode) {
+                permissionCheck=true;
+            } else { //Permission is not available
+                permissionCheck=false;
+                Toast.makeText(this,
+                        "Draw over other app permission not available. Closing the application",
+                        Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
     }
 
     private void displaySelectedScreen(int itemId) {
         // Handle navigation view item clicks here.
-        Fragment fragment = null;
-
         if (itemId == R.id.nav_home) {
-            fragment = new PlusOneFragment();
+            fragment = HomeFragment.newInstance();
 
-        } else if (itemId == R.id.nav_store){
+        } else if (itemId == R.id.nav_store) {
 
         } else if (itemId == R.id.nav_notification) {
 
@@ -58,6 +112,7 @@ public class MainActivity extends AppCompatActivity
         if (fragment != null) {
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.replace(R.id.content_frame, fragment);
+            ft.addToBackStack(null);
             ft.commit();
         }
 
@@ -91,7 +146,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onFragmentInteraction(Uri uri) {
-
+    public void onItemCLickInteraction(String name) {
+        frameWebView.setVisibility(View.VISIBLE);
+        frameLayout.setVisibility(View.GONE);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.content_frame_webView, CouponFragment.newInstance(name,permissionCheck)).commit();
     }
 }
